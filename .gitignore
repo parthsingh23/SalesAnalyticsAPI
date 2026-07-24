@@ -1,0 +1,6 @@
+cap1Env/
+__pycache__/
+*.py[cod]
+.env
+.vscode/
+.pytest_cache/
