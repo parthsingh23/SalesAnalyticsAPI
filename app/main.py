@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from app.database import create_db_and_table
 from app.models import Sale
 
-from app.routers import analytics
+from app.routers import analytics, products
 
 @asynccontextmanager
 async def startup(app: FastAPI):
@@ -14,6 +14,7 @@ async def startup(app: FastAPI):
 app = FastAPI(lifespan=startup)
 
 app.include_router(analytics.router)
+app.include_router(products.router)
 
 @app.get("/")
 def root():

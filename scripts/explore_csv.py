@@ -2,22 +2,27 @@ import pandas as pd
 
 df = pd.read_csv("SalesAnalyticsAPI/data/FMCG_2022_2024.csv")
 
-print("\nFirst 5 rows")
-print(df.head())
+# print("\nFirst 5 rows")
+# print(df.head())
 
-print("\nColumns")
-print(df.columns)
+# print("\nColumns")
+# regional_options = df["region"].value_counts()
+# print(regional_options)
 
-print("\nData Types")
-print(df.dtypes)
+print(df["category"].value_counts())
 
-print("\nMissing Values")
-print(df.isnull().sum())
+# print("\nData Types")
+# print(df.dtypes)
 
-print("\nShape")
-print(df.shape)
+# print("\nMissing Values")
+# print(df.isnull().sum())
 
-print("\nSample Values")
-for col in df.columns:
-    print(f"\n{col}")
-    print(df[col].unique()[:10])
+# print("\nShape")
+# print(df.shape)
+
+
+
+# print("\nSample Values")
+# for col in df.columns:
+#     print(f"\n{col}")
+#     print(df[col].unique()[:10])
