@@ -11,7 +11,11 @@ async def startup(app: FastAPI):
     create_db_and_table()
     yield
 
-app = FastAPI(lifespan=startup)
+app = FastAPI(lifespan=startup, 
+    title="Sales Analytics API", 
+    description="Backend API for Sales Analytics Dashboard",
+    version="1.0.0"
+)
 
 app.include_router(analytics.router)
 app.include_router(products.router)

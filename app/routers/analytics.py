@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, FastAPI
 from sqlmodel import Session, select
 from sqlalchemy import func, text
 
@@ -10,6 +10,7 @@ router = APIRouter(
     prefix="/analytics",
     tags=["Analytics"]
 )
+
 
 @router.get("/kpis", response_model=KPIResponses)
 def get_kpis(session: Session = Depends(get_session)):
