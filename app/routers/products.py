@@ -39,6 +39,17 @@ def get_product(product_id: int, session: SessionDep):
 
 @router.post("/", response_model=ProductRead, status_code=201)
 def create_product(product: ProductCreate, session: SessionDep):
+
+    existing_product = session.exec(
+        select(Product).where(Product.product_id == product.product_id)
+    ).first()
+
+    if existing_product:
+        raise HTTPException(
+            status_code=409,
+            detail="Product Already Exists"
+        )
+
     db_product = Product.model_validate(product)
     session.add(db_product)
     session.commit()
