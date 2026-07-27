@@ -20,13 +20,13 @@ router = APIRouter(
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
-@router.get("/", response_model=list[ProductRead])
+@router.get("/", response_model=list[ProductRead], description="Display all products")
 def get_products(session: SessionDep):
     statement = select(Product)
     products = session.exec(statement).all()
     return products
 
-@router.get("/{product_id}", response_model=ProductRead)
+@router.get("/{product_id}", response_model=ProductRead, description="Display single product by id")
 def get_product(product_id: int, session: SessionDep):
     statement = select(Product).where(Product.id == product_id)
     product = session.exec(statement).first()
@@ -37,7 +37,7 @@ def get_product(product_id: int, session: SessionDep):
         )
     return product
 
-@router.post("/", response_model=ProductRead, status_code=201)
+@router.post("/", response_model=ProductRead, status_code=201, summary="Creates a new product in the database.")
 def create_product(product: ProductCreate, session: SessionDep):
 
     existing_product = session.exec(
