@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Field
 from datetime import date
 
 # Analytics Schema
@@ -33,20 +33,20 @@ class TopProductResponse(SQLModel):
 # Products Schema
 
 class ProductCreate(SQLModel):
-    product_id: str
-    product_name: str
+    product_id: str = Field(min_length=3, max_length=20)
+    product_name: str = Field(min_length=2, max_length=100)
 
-    brand_name: str
+    brand_name: str = Field(min_length=2)
     brand_desc: str
 
     category: str
     product_size: str
 
-    currency: str
+    currency: str = Field(min_length=3, max_length=3)
 
-    mrp: float
-    sell_price: float
-    discount: int
+    mrp: float = Field(gt=0)
+    sell_price: float = Field(gt=0)
+    discount: int = Field(ge=0, le=100)
 
 
 class ProductRead(ProductCreate):
