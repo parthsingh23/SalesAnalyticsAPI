@@ -49,9 +49,20 @@ class ProductCreate(SQLModel):
     discount: int = Field(ge=0, le=100)
 
 
-class ProductRead(ProductCreate):
-    id: int
+class ProductBase(SQLModel):
+    product_id: str
+    product_name: str
+    brand_name: str
+    brand_desc: str
+    category: str
+    product_size: str
+    currency: str
+    mrp: float
+    sell_price: float
+    discount: int
 
+class ProductRead(ProductBase):
+    id: int
 
 class ProductUpdate(SQLModel):
     product_name: str | None = None

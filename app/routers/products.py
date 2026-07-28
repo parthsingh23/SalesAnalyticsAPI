@@ -6,7 +6,12 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import Product, Sale
-from app.schemas import *
+from app.schemas import (
+    ProductCreate,
+    ProductRead,
+    ProductUpdate,
+    TopProductResponse,
+)
 
 router = APIRouter(
     prefix="/products",
