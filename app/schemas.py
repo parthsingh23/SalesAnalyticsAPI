@@ -63,3 +63,5 @@ class ProductUpdate(SQLModel):
     mrp: float | None = None
     sell_price: float | None = None
     discount: int | None = None
+
+

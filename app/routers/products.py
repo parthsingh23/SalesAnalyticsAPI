@@ -6,12 +6,7 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import Product, Sale
-from app.schemas import (
-    ProductCreate,
-    ProductRead,
-    ProductUpdate,
-    TopProductResponse,
-)
+from app.schemas import *
 
 router = APIRouter(
     prefix="/products",
@@ -25,6 +20,27 @@ def get_products(session: SessionDep):
     statement = select(Product)
     products = session.exec(statement).all()
     return products
+
+@router.get("/top", response_model=list[TopProductResponse])
+def get_top_products(limit: int = 10, session: SessionDep = None):
+    query = (
+        select(
+            Sale.sku,
+            Sale.brand,
+            func.sum(Sale.units_sold)
+        ).group_by(Sale.sku, Sale.brand).order_by(func.sum(Sale.units_sold).desc()).limit(limit)
+    )
+
+    results = session.exec(query).all()
+
+    return [
+        TopProductResponse(
+            sku = row[0],
+            brand = row[1],
+            units_sold= row[2]
+        )
+        for row in results
+    ]
 
 @router.get("/{product_id}", response_model=ProductRead, description="Display single product by id")
 def get_product(product_id: int, session: SessionDep):
@@ -93,23 +109,3 @@ def delete_product(product_id: int, session: SessionDep):
         "message": "Product deleted successfully"
     }
 
-@router.get("/top", response_model=list[TopProductResponse])
-def get_top_products(limit: int = 10, session: Session = Depends(get_session)):
-    query = (
-        select(
-            Sale.sku,
-            Sale.brand,
-            func.sum(Sale.units_sold)
-        ).group_by(Sale.sku, Sale.brand).order_by(func.sum(Sale.units_sold).desc()).limit(limit)
-    )
-
-    results = session.exec(query).all()
-
-    return [
-        TopProductResponse(
-            sku = row[0],
-            brand = row[1],
-            units_sold= row[2]
-        )
-        for row in results
-    ]
