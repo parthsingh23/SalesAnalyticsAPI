@@ -20,13 +20,23 @@ router = APIRouter(
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
-@router.get("/", response_model=list[ProductRead], description="Display all products")
+@router.get(
+    "/",
+    response_model=list[ProductRead],
+    summary="Get all products",
+    description="Retrieve all products available in the product catalog."
+)
 def get_products(session: SessionDep):
     statement = select(Product)
     products = session.exec(statement).all()
     return products
 
-@router.get("/top", response_model=list[TopProductResponse])
+@router.get(
+    "/top",
+    response_model=list[TopProductResponse],
+    summary="Get top-selling products",
+    description="Retrieve the top-selling products ranked by total units sold. Use the 'limit' query parameter to control the number of results returned."
+)
 def get_top_products(limit: int = 10, session: SessionDep = None):
     query = (
         select(
@@ -47,7 +57,12 @@ def get_top_products(limit: int = 10, session: SessionDep = None):
         for row in results
     ]
 
-@router.get("/{product_id}", response_model=ProductRead, description="Display single product by id")
+@router.get(
+    "/{product_id}",
+    response_model=ProductRead,
+    summary="Get product by ID",
+    description="Retrieve detailed information for a specific product using its database ID."
+)
 def get_product(product_id: int, session: SessionDep):
     statement = select(Product).where(Product.id == product_id)
     product = session.exec(statement).first()
@@ -58,7 +73,13 @@ def get_product(product_id: int, session: SessionDep):
         )
     return product
 
-@router.post("/", response_model=ProductRead, status_code=201, summary="Creates a new product in the database.")
+@router.post(
+    "/",
+    response_model=ProductRead,
+    status_code=201,
+    summary="Create a new product",
+    description="Create a new product in the database. Product IDs must be unique."
+)
 def create_product(product: ProductCreate, session: SessionDep):
 
     existing_product = session.exec(
@@ -77,7 +98,12 @@ def create_product(product: ProductCreate, session: SessionDep):
     session.refresh(db_product)
     return db_product
 
-@router.put("/{product_id}", response_model=ProductRead)
+@router.put(
+    "/{product_id}",
+    response_model=ProductRead,
+    summary="Update a product",
+    description="Update one or more fields of an existing product using its database ID."
+)
 def update_product(product_id: int, product: ProductUpdate, session: SessionDep):
     statement = select(Product).where(Product.id == product_id)
 
@@ -97,7 +123,11 @@ def update_product(product_id: int, product: ProductUpdate, session: SessionDep)
 
     return db_product
 
-@router.delete("/{product_id}")
+@router.delete(
+    "/{product_id}",
+    summary="Delete a product",
+    description="Delete a product from the database using its database ID."
+)
 def delete_product(product_id: int, session: SessionDep):
     statement = select(Product).where(Product.id == product_id)
 
