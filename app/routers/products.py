@@ -71,6 +71,12 @@ def create_product(product: ProductCreate, session: SessionDep):
             detail="A product with this product id already exists."
         )
 
+    if product.sell_price > product.mrp:
+        raise HTTPException(
+            status_code=400,
+            detail="Selling price cannot be greater than MRP."
+        )
+
     discount = round(
         ((product.mrp-product.sell_price)/product.mrp) * 100
     )
