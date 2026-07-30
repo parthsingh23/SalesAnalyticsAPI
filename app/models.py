@@ -26,7 +26,7 @@ class Sale(SQLModel, table=True):
 class Product(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    product_id: str
+    product_id: str = Field(unique=True, index=True)
     product_name: str
 
     brand_name: str
