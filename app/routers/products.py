@@ -71,7 +71,14 @@ def create_product(product: ProductCreate, session: SessionDep):
             detail="A product with this product id already exists."
         )
 
-    db_product = Product.model_validate(product)
+    discount = round(
+        ((product.mrp-product.sell_price)/product.mrp) * 100
+    )
+
+    db_product = Product(
+        **product.model_dump(),
+        discount=discount
+    )
     session.add(db_product)
     session.commit()
     session.refresh(db_product)

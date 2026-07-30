@@ -42,11 +42,11 @@ class ProductCreate(SQLModel):
     category: str
     product_size: str
 
-    currency: str = Field(min_length=3, max_length=3)
+    currency: str
 
     mrp: float = Field(gt=0)
     sell_price: float = Field(gt=0)
-    discount: int = Field(ge=0, le=100)
+    # discount: int = Field(ge=0, le=100)
 
 
 class ProductBase(SQLModel):
