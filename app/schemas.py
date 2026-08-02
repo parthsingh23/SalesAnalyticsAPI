@@ -72,14 +72,15 @@ class ProductRead(ProductBase):
     id: int
 
 class ProductUpdate(SQLModel):
-    product_name: str | None = None
-    brand_name: str | None = None
+    product_name: str | None = Field(default=None, min_length=2, max_length=100)
+    brand_name: str | None = Field(default=None, min_length=2)
     brand_desc: str | None = None
     category: str | None = None
     product_size: str | None = None
     currency: str | None = None
-    mrp: float | None = None
-    sell_price: float | None = None
-    discount: int | None = None
+    mrp: float | None = Field(default=None, gt=0)
+    sell_price: float | None = Field(default=None, gt=0)
+    discount: int | None = Field(default=None, ge=0, le=100)
+
 
 
