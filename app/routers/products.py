@@ -45,16 +45,6 @@ def create_product(product: ProductCreate, session: SessionDep):
         select(Product).where(Product.product_id == product.product_id)
     ).first()
 
-    existing_category = session.exec(
-        select(Product).where(product.category != "Westernwear-Women")
-    ).all()
-
-    if existing_category:
-            raise HTTPException(
-                status_code=409,
-                detail="Category should only be Westernwear-Women"
-            )
-
     if existing_product:
         raise HTTPException(
             status_code=409,
