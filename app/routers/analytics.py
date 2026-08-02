@@ -4,7 +4,7 @@ from sqlalchemy import func, text
 
 from app.database import get_session
 from app.models import Sale
-from app.schemas import KPIResponses, SalesTrendResponse, SalesByRegionResponses, SalesByCategory, Granularity, TopProductResponse
+from app.schemas import KPIResponses, SalesTrendResponse, SalesByRegionResponses, SalesByCategory, Granularity, TopProductResponse, ByChannel
 
 router = APIRouter(
     prefix="/analytics",
@@ -121,3 +121,25 @@ def get_sales_by_category(session: Session = Depends(get_session)):
         for row in results
     ]
 
+@router.get("/sales/by-channel", response_model=list[ByChannel])
+def get_by_channel(session: Session = Depends(get_session)):
+    query = (
+        select(
+            Sale.channel,
+            func.sum(Sale.price_unit * Sale.units_sold),
+            func.sum(Sale.delivered_qty),
+            func.avg(Sale.price_unit)
+        ).group_by(Sale.channel)
+    )
+
+    result = session.exec(query).all()
+
+    return [
+        ByChannel(
+            channel=row[0],
+            total_revenue=round(row[1], 2),
+            total_delivered_qty=row[2],
+            average_price=round(row[3], 2)
+        )
+        for row in result
+    ]

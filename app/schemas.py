@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field
+from pydantic import field_validator
 from datetime import date
 from enum import Enum
 
@@ -34,6 +35,12 @@ class Granularity(str, Enum):
     monthly = "monthly"
     yearly = "yearly"
 
+class ByChannel(SQLModel):
+    channel: str
+    total_revenue: float
+    total_delivered_qty: int
+    average_price: float
+
 """---------------------------------------------------------"""
 
 
@@ -54,6 +61,27 @@ class ProductCreate(SQLModel):
     mrp: float = Field(gt=0)
     sell_price: float = Field(gt=0)
     # discount: int = Field(ge=0, le=100)
+
+    @field_validator(
+        "product_id",
+        "product_name",
+        "brand_name",
+        "brand_desc",
+        "category",
+        "product_size",
+        "currency"
+    )
+    @classmethod
+    def validate_string_fields(cls, value: str):
+        value = value.strip()
+
+        if not value:
+            raise ValueError("This field cannot be empty.")
+
+        if value.lower() == "string":
+            raise ValueError("Please provide a valid value instead of 'string'.")
+
+        return value
 
 
 class ProductBase(SQLModel):
