@@ -1,16 +1,14 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import Product, Sale
+from app.models import Product
 from app.schemas import (
     ProductCreate,
     ProductRead,
-    ProductUpdate,
-    TopProductResponse,
+    ProductUpdate
 )
 
 router = APIRouter(
@@ -20,24 +18,25 @@ router = APIRouter(
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
-@router.get("/", response_model=list[ProductRead], summary="Get all products", description="Retrieve all products available in the product catalog.")
-def get_products(session: SessionDep):
-    statement = select(Product)
-    products = session.exec(statement).all()
-    return products
-
-
-
-@router.get("/{product_id}", response_model=ProductRead, summary="Get product by ID", description="Retrieve detailed information for a specific product using its database ID.")
-def get_product(product_id: int, session: SessionDep):
+def get_product_or_404(product_id: int, session: Session) -> Product:
     statement = select(Product).where(Product.id == product_id)
     product = session.exec(statement).first()
     if product is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found"
-        )
+        raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+@router.get("/", response_model=list[ProductRead], summary="Get all products", description="Retrieve all products available in the product catalog.")
+def get_products(session: SessionDep, 
+    offset: int = Query(default=0, ge=0, description="No. of items to skip"), 
+    limit: int = Query(default=0, le=100, description="Max number of items to return")
+):
+    statement = select(Product).offset(offset).limit(limit)
+    products = session.exec(statement).all()
+    return products
+
+@router.get("/{product_id}", response_model=ProductRead, summary="Get product by ID", description="Retrieve detailed information for a specific product using its database ID.")
+def get_product(product_id: int, session: SessionDep):
+    return get_product_or_404(product_id, session)
 
 @router.post("/", response_model=ProductRead, status_code=201, summary="Create a new product", description="Create a new product in the database. Product IDs must be unique.")
 def create_product(product: ProductCreate, session: SessionDep):
@@ -75,10 +74,7 @@ def create_product(product: ProductCreate, session: SessionDep):
 def update_product(product_id: int, product: ProductUpdate, session: SessionDep):
     statement = select(Product).where(Product.id == product_id)
 
-    db_product = session.exec(statement).first()
-
-    if db_product is None:
-        raise HTTPException(status_code=404, detail="Product not found.")
+    db_product = get_product_or_404(product_id, session)
 
     update_data = product.model_dump(exclude_unset=True)
     db_product.sqlmodel_update(update_data)
@@ -87,7 +83,7 @@ def update_product(product_id: int, product: ProductUpdate, session: SessionDep)
         if db_product.sell_price > db_product.mrp:
             raise HTTPException(
                 status_code=400,
-                detail="Selling Price cannot be greater then MRP"
+                detail="Selling Price cannot be greater than MRP"
             )
         db_product.discount = round(
             ((db_product.mrp-db_product.sell_price)/db_product.mrp) * 100
@@ -100,14 +96,7 @@ def update_product(product_id: int, product: ProductUpdate, session: SessionDep)
 
 @router.delete("/{product_id}", summary="Delete a product", description="Delete a product from the database using its database ID.")
 def delete_product(product_id: int, session: SessionDep):
-    statement = select(Product).where(Product.id == product_id)
-
-    product = session.exec(statement).first()
-    if product is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found"
-        )
+    product = get_product_or_404(product_id, session)
     session.delete(product)
     session.commit()
 
