@@ -15,6 +15,8 @@ class KPIResponses(SQLModel):
 class SalesTrendResponse(SQLModel):
     date: date
     units_sold: int
+    total_revenue: float
+    total_delivered_qty: int
 
 class SalesByRegionResponses(SQLModel):
     region: str

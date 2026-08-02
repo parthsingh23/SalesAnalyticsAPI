@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlmodel import Session, select
-from sqlalchemy import func, text
+from sqlalchemy import func
+from typing import Optional
 
 from app.database import get_session
 from app.models import Sale
@@ -55,29 +56,94 @@ def get_top_products(session: Session = Depends(get_session), limit: int = Query
         for row in results
     ]
 
-@router.get("/sales/trend", response_model=list[SalesTrendResponse], summary="Get sales trend", description="Get sales trends grouped by daily, weekly, monthly, or yearly intervals using the 'granularity' query parameter.")
-def get_sales_trend(session: Session = Depends(get_session), granularity: Granularity = Granularity.daily):
+@router.get("/sales/trend", 
+    response_model=list[SalesTrendResponse], 
+    summary="Get sales trend", 
+    description="""
+    Get sales trends grouped by daily, weekly, monthly, or yearly intervals.
+
+    Examples:
+    - Whole year month-wise:
+      /sales/trend?year=2024&granularity=monthly
+
+    - Selected month day-wise:
+      /sales/trend?year=2024&month=3&granularity=daily
+
+    - Selected month week-wise:
+      /sales/trend?year=2024&month=3&granularity=weekly
+
+    - Complete dataset year-wise:
+      /sales/trend?granularity=yearly
+    """
+)
+def get_sales_trend(
+    session: Session = Depends(get_session), 
+    granularity: Granularity = Granularity.daily, 
+    year: Optional[int] = None, 
+    month: Optional[int] = None
+):
     period_map = {
-        Granularity.daily: text("'daily'"),
-        Granularity.weekly: text("'week'"),
-        Granularity.monthly: text("'month'"),
-        Granularity.yearly: text("'year'")
+        Granularity.daily: "day",
+        Granularity.weekly: "week",
+        Granularity.monthly: "month",
+        Granularity.yearly: "year"
     }
 
     period = period_map[granularity]
 
+    if year is not None and year not in (2022, 2023, 2024):
+        raise HTTPException(
+            status_code=400,
+            detail="Year must be between 2022 and 2024."
+        )
+
+    if month is not None and year is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Please specify a year when filtering by month."
+        )
+
+    if month is not None and not 1 <= month <= 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Month must be between 1 and 12."
+        )
+
+    if month is not None and granularity in (Granularity.monthly, Granularity.yearly):
+        raise HTTPException(
+        status_code=400,
+        detail="For a selected month, granularity must be daily or weekly."
+    )
+
+
     query = (
         select(
             func.date_trunc(period, Sale.date).label("period"),
-            func.sum(Sale.units_sold)
-        ).group_by("period").order_by("period")
+            func.sum(Sale.units_sold).label("units_sold"),
+            func.sum(Sale.price_unit * Sale.units_sold).label("total_revenue"),
+            func.sum(Sale.delivered_qty).label("total_delivered")
+        )
+    )
+
+    if year is not None:
+        query = query.where(func.extract("year", Sale.date) == year)
+
+    if month is not None:
+        query = query.where(func.extract("month", Sale.date) == month)
+
+    query = (
+        query
+        .group_by("period")
+        .order_by("period")
     )
     results = session.exec(query).all()
 
     return [
         SalesTrendResponse(
-            date=row[0].date(),
-            units_sold=row[1]
+            date=row.period.date(),
+            units_sold=row.units_sold or 0,
+            total_revenue=round(row.total_revenue or 0,2),
+            total_delivered_qty=row.total_delivered or 0
         )
         for row in results
     ]
@@ -121,7 +187,7 @@ def get_sales_by_category(session: Session = Depends(get_session)):
         for row in results
     ]
 
-@router.get("/sales/by-channel", response_model=list[ByChannel])
+@router.get("/sales/by-channel", response_model=list[ByChannel], summary="Get sales by channel", description="Retrieve revenue, delivered quantity and average selling price grouped by sales channel.")
 def get_by_channel(session: Session = Depends(get_session)):
     query = (
         select(
