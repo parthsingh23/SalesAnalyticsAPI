@@ -5,7 +5,7 @@ from typing import Optional
 
 from app.database import get_session
 from app.models import Sale
-from app.schemas import KPIResponses, SalesTrendResponse, SalesByRegionResponses, SalesByCategory, Granularity, TopProductResponse, ByChannel
+from SalesAnalyticsAPI.app.saleSchema import *
 
 router = APIRouter(
     prefix="/analytics",

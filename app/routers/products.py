@@ -5,11 +5,7 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import Product
-from app.schemas import (
-    ProductCreate,
-    ProductRead,
-    ProductUpdate
-)
+from SalesAnalyticsAPI.app.productSchema import *
 
 router = APIRouter(
     prefix="/products",

@@ -47,7 +47,8 @@ SalesAnalyticsAPI
 │   ├── database.py
 │   ├── main.py
 │   ├── models.py
-│   ├── schemas.py
+│   ├── productSchemas.py
+│   ├── saleSchemas.py
 │   └── routers
 │       ├── analytics.py
 │       └── products.py
