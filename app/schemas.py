@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field
 from datetime import date
+from enum import Enum
 
 # Analytics Schema
 class KPIResponses(SQLModel):
@@ -26,6 +27,12 @@ class TopProductResponse(SQLModel):
     sku: str
     brand: str
     units_sold: int
+
+class Granularity(str, Enum):
+    daily = "daily"
+    weekly = "weekly"
+    monthly = "monthly"
+    yearly = "yearly"
 
 """---------------------------------------------------------"""
 

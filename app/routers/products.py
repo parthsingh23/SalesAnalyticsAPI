@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlmodel import Session, select
 
@@ -27,7 +27,7 @@ def get_products(session: SessionDep):
     return products
 
 @router.get("/top", response_model=list[TopProductResponse], summary="Get top-selling products", description="Retrieve the top selling products ranked by total units sold.")
-def get_top_products(session: SessionDep, limit: int = 10):
+def get_top_products(session: SessionDep, limit: int = Query(default=10, le=100)):
     query = (
         select(
             Sale.sku,
@@ -97,13 +97,20 @@ def update_product(product_id: int, product: ProductUpdate, session: SessionDep)
     db_product = session.exec(statement).first()
 
     if db_product is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found"
+        raise HTTPException(status_code=404, detail="Product not found.")
+
+    update_data = product.model_dump(exclude_unset=True)
+    db_product.sqlmodel_update(update_data)
+
+    if "sell_price" in update_data or "mrp" in update_data:
+        if db_product.sell_price > db_product.mrp:
+            raise HTTPException(
+                status_code=400,
+                detail="Selling Price cannot be greater then MRP"
+            )
+        db_product.discount = round(
+            ((db_product.mrp-db_product.sell_price)/db_product.mrp) * 100
         )
-    db_product.sqlmodel_update(
-        product.model_dump(exclude_unset=True)
-    )  
 
     session.commit()
     session.refresh(db_product)
