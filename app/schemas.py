@@ -80,7 +80,6 @@ class ProductUpdate(SQLModel):
     currency: str | None = None
     mrp: float | None = Field(default=None, gt=0)
     sell_price: float | None = Field(default=None, gt=0)
-    discount: int | None = Field(default=None, ge=0, le=100)
 
 
 
