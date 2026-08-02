@@ -33,7 +33,6 @@ A RESTful Sales Analytics API built using **FastAPI**, **SQLModel**, and **Postg
 |--|--|
 | FastAPI | REST API Framework |
 | SQLModel | ORM |
-| SQLAlchemy | Database Engine |
 | PostgreSQL (Supabase) | Database |
 | Pandas | CSV Import |
 | Uvicorn | ASGI Server |
