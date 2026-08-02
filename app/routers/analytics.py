@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
 from sqlalchemy import func, text
 
 from app.database import get_session
 from app.models import Sale
-from app.schemas import KPIResponses, SalesTrendResponse, SalesByRegionResponses, SalesByCategory, Granularity
+from app.schemas import KPIResponses, SalesTrendResponse, SalesByRegionResponses, SalesByCategory, Granularity, TopProductResponse
 
 router = APIRouter(
     prefix="/analytics",
@@ -34,6 +34,26 @@ def get_kpis(session: Session = Depends(get_session)):
         unique_products=result[5]
     )
 
+@router.get("/top", response_model=list[TopProductResponse], summary="Get top-selling products", description="Retrieve the top selling products ranked by total units sold.")
+def get_top_products(session: Session = Depends(get_session), limit: int = Query(default=10, le=100)):
+    query = (
+        select(
+            Sale.sku,
+            Sale.brand,
+            func.sum(Sale.units_sold)
+        ).group_by(Sale.sku, Sale.brand).order_by(func.sum(Sale.units_sold).desc()).limit(limit)
+    )
+
+    results = session.exec(query).all()
+
+    return [
+        TopProductResponse(
+            sku = row[0],
+            brand = row[1],
+            units_sold= row[2]
+        )
+        for row in results
+    ]
 
 @router.get("/sales/trend", response_model=list[SalesTrendResponse], summary="Get sales trend", description="Get sales trends grouped by daily, weekly, monthly, or yearly intervals using the 'granularity' query parameter.")
 def get_sales_trend(session: Session = Depends(get_session), granularity: Granularity = Granularity.daily):

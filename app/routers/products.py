@@ -26,26 +26,7 @@ def get_products(session: SessionDep):
     products = session.exec(statement).all()
     return products
 
-@router.get("/top", response_model=list[TopProductResponse], summary="Get top-selling products", description="Retrieve the top selling products ranked by total units sold.")
-def get_top_products(session: SessionDep, limit: int = Query(default=10, le=100)):
-    query = (
-        select(
-            Sale.sku,
-            Sale.brand,
-            func.sum(Sale.units_sold)
-        ).group_by(Sale.sku, Sale.brand).order_by(func.sum(Sale.units_sold).desc()).limit(limit)
-    )
 
-    results = session.exec(query).all()
-
-    return [
-        TopProductResponse(
-            sku = row[0],
-            brand = row[1],
-            units_sold= row[2]
-        )
-        for row in results
-    ]
 
 @router.get("/{product_id}", response_model=ProductRead, summary="Get product by ID", description="Retrieve detailed information for a specific product using its database ID.")
 def get_product(product_id: int, session: SessionDep):
