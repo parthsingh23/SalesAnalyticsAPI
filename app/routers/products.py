@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import Product
-from SalesAnalyticsAPI.app.productSchema import *
+from app.productSchema import *
 
 router = APIRouter(
     prefix="/products",
