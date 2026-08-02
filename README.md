@@ -1,23 +1,18 @@
 # 📊 Sales Analytics API
 
-A RESTful Sales Analytics API built using **FastAPI**, **SQLModel**, and **PostgreSQL (Supabase)**.
-
-This project was developed as **Capstone 1** during my internship at **Emami**. The API exposes sales analytics endpoints and a complete Product CRUD system over a PostgreSQL database.
-
----
+A RESTful Sales Analytics API built using **FastAPI**, **SQLModel**, and **PostgreSQL (Supabase)**. This project was developed as **Capstone 1** during an internship at **Emami**. It provides sales analytics endpoints and a complete Product CRUD system over a PostgreSQL database.
 
 ## Features
 
 ### Sales Analytics
-
 - Total KPIs
 - Sales Trend (Daily / Weekly / Monthly / Yearly)
 - Sales by Region
 - Sales by Category
+- Sales by Channel
 - Top Selling Products
 
 ### Product Management
-
 - Create Product
 - Read Products
 - Read Single Product
@@ -25,20 +20,17 @@ This project was developed as **Capstone 1** during my internship at **Emami**. 
 - Delete Product
 
 ### Other Features
-
 - PostgreSQL (Supabase)
 - SQLModel ORM
 - Auto-generated Swagger Documentation
 - Request Validation using Pydantic
-- Error Handling (404, 422)
+- Error Handling (404, 400, 409, 422)
 - RESTful API Design
-
----
 
 ## Tech Stack
 
 | Technology | Purpose |
-|------------|---------|
+|--|--|
 | FastAPI | REST API Framework |
 | SQLModel | ORM |
 | SQLAlchemy | Database Engine |
@@ -47,11 +39,9 @@ This project was developed as **Capstone 1** during my internship at **Emami**. 
 | Uvicorn | ASGI Server |
 | Pydantic | Data Validation |
 
----
-
 ## Project Structure
 
-```text
+```bash
 SalesAnalyticsAPI
 │
 ├── app
@@ -77,48 +67,46 @@ SalesAnalyticsAPI
 └── .env
 ```
 
----
-
 ## Installation
 
-Clone the repository
+Clone the repository:
 
 ```bash
 git clone https://github.com/parthsingh23/SalesAnalyticsAPI.git
 cd SalesAnalyticsAPI
 ```
 
-Create a virtual environment
+Create a virtual environment:
 
 ```bash
 python -m venv cap1Env
 ```
 
-Activate it
+Activate it:
 
 ### Windows
-
 ```bash
 cap1Env\Scripts\activate
 ```
 
-Install dependencies
+### macOS / Linux
+```bash
+source cap1Env/bin/activate
+```
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
 ## Environment Variables
 
-Create a `.env` file
+Create a `.env` file in the root directory:
 
 ```env
 DATABASE_URL=your_supabase_database_url
 ```
-
----
 
 ## Run the API
 
@@ -126,43 +114,40 @@ DATABASE_URL=your_supabase_database_url
 uvicorn app.main:app --reload
 ```
 
-The API will be available at
+The API will be available at:
 
-```
+```bash
 http://127.0.0.1:8000
 ```
 
-Swagger Documentation
+Swagger documentation:
 
-```
+```bash
 http://127.0.0.1:8000/docs
 ```
-
----
 
 ## API Endpoints
 
 ### Analytics
 
 | Method | Endpoint |
-|---------|----------|
+|--|--|
 | GET | /analytics/kpis |
+| GET | /analytics/top |
 | GET | /analytics/sales/trend |
 | GET | /analytics/sales/by-region |
 | GET | /analytics/sales/by-category |
+| GET | /analytics/sales/by-channel |
 
 ### Products
 
 | Method | Endpoint |
-|---------|----------|
+|--|--|
 | GET | /products |
 | GET | /products/{id} |
 | POST | /products |
 | PUT | /products/{id} |
 | DELETE | /products/{id} |
-| GET | /products/top |
-
----
 
 ## Database
 
@@ -171,19 +156,18 @@ http://127.0.0.1:8000/docs
 - Imported sales dataset (~190k records)
 - Imported products dataset (~4548 records)
 
----
+## Deployment
+
+Deployed on Render:
+
+[Live Swagger Docs](https://sales-analytics-api-parth.onrender.com/docs)
 
 ## Author
 
-**Parth Singh**
-
-B.Tech CSE, Techno India University
-
-IIT Madras BS Degree (Data Science)
-
-GitHub: https://github.com/parthsingh23
-
----
+**Parth Singh**  
+B.Tech CSE, Techno India University  
+IIT Madras BS Degree (Data Science)  
+GitHub: [parthsingh23](https://github.com/parthsingh23)
 
 ## License
 
