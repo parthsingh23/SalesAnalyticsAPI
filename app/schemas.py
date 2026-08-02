@@ -27,7 +27,7 @@ class SalesByCategory(SQLModel):
     units_sold: int
 
 class TopProductResponse(SQLModel):
-    sku: str
+    date: date
     brand: str
     units_sold: int
 

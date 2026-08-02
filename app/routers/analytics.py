@@ -36,20 +36,63 @@ def get_kpis(session: Session = Depends(get_session)):
     )
 
 @router.get("/top", response_model=list[TopProductResponse], summary="Get top-selling products", description="Retrieve the top selling products ranked by total units sold.")
-def get_top_products(session: Session = Depends(get_session), limit: int = Query(default=10, le=100)):
+def get_top_products(session: Session = Depends(get_session), 
+    limit: int = Query(default=10, le=100),
+    granularity: Granularity = Granularity.daily, 
+    year: Optional[int] = None, 
+    month: Optional[int] = None
+):
+    period_map = {
+            Granularity.daily: "day",
+            Granularity.weekly: "week",
+            Granularity.monthly: "month",
+            Granularity.yearly: "year"
+        }
+    
+    period = period_map[granularity]
+    
+    if year is not None and year not in (2022, 2023, 2024):
+        raise HTTPException(
+            status_code=400,
+            detail="Year must be between 2022 and 2024."
+        )
+
+    if month is not None and year is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Please specify a year when filtering by month."
+        )
+
+    if month is not None and not 1 <= month <= 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Month must be between 1 and 12."
+        )
+
     query = (
         select(
-            Sale.sku,
+            func.date_trunc(period, Sale.date).label("period"),
             Sale.brand,
             func.sum(Sale.units_sold)
-        ).group_by(Sale.sku, Sale.brand).order_by(func.sum(Sale.units_sold).desc()).limit(limit)
+        ).group_by(func.date_trunc(period, Sale.date), Sale.brand).order_by(func.sum(Sale.units_sold).desc()).limit(limit)
     )
 
+    if year is not None:
+        query = query.where(func.extract("year", Sale.date) == year)
+
+    if month is not None:
+        query = query.where(func.extract("month", Sale.date) == month)
+
+    query = (
+        query
+        .group_by("period")
+        .order_by("period")
+    )
     results = session.exec(query).all()
 
     return [
         TopProductResponse(
-            sku = row[0],
+            date = row[0],
             brand = row[1],
             units_sold= row[2]
         )
