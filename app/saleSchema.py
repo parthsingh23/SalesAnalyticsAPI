@@ -25,8 +25,8 @@ class SalesByCategory(SQLModel):
     units_sold: int
 
 class TopProductResponse(SQLModel):
-    date: date
-    brand: str
+    product_id: str
+    product_name: str
     units_sold: int
 
 class Granularity(str, Enum):
