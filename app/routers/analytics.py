@@ -65,16 +65,9 @@ def get_top_products(
             detail="Month must be between 1 and 12."
         )
 
-    query = (
-        select(
-            Product.product_id,
-            Product.product_name,
-            func.sum(Sale.units_sold).label("units_sold"),
-        )
-        .join(
-            Product,
-            Product.product_id == Sale.product_id
-        )
+    query = select(
+        Sale.sku,
+        func.sum(Sale.units_sold).label("units_sold"),
     )
 
     if year is not None:
@@ -89,23 +82,21 @@ def get_top_products(
 
     query = (
         query
-        .group_by(
-            Product.product_id,
-            Product.product_name,
-        )
+        .group_by(Sale.sku)
         .order_by(
             func.sum(Sale.units_sold).desc()
         )
         .limit(limit)
     )
 
+
     results = session.exec(query).all()
 
     return [
         TopProductResponse(
             product_id=row[0],
-            product_name=row[1],
-            units_sold=row[2],
+            product_name=row[0],
+            units_sold=row[1],
         )
         for row in results
     ]
