@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import Optional
 
 from app.database import get_session
-from app.models import Sale
+from app.models import Sale, Product
 from app.saleSchema import *
 
 router = APIRouter(
@@ -35,22 +35,18 @@ def get_kpis(session: Session = Depends(get_session)):
         unique_products=result[5]
     )
 
-@router.get("/top", response_model=list[TopProductResponse], summary="Get top-selling products", description="Retrieve the top selling products ranked by total units sold.")
-def get_top_products(session: Session = Depends(get_session), 
+@router.get(
+    "/top",
+    response_model=list[TopProductResponse],
+    summary="Get top-selling products",
+    description="Retrieve the top selling products ranked by total units sold."
+)
+def get_top_products(
+    session: Session = Depends(get_session),
     limit: int = Query(default=10, le=100),
-    granularity: Granularity = Granularity.daily, 
-    year: Optional[int] = None, 
-    month: Optional[int] = None
+    year: Optional[int] = None,
+    month: Optional[int] = None,
 ):
-    period_map = {
-            Granularity.daily: "day",
-            Granularity.weekly: "week",
-            Granularity.monthly: "month",
-            Granularity.yearly: "year"
-        }
-    
-    period = period_map[granularity]
-    
     if year is not None and year not in (2022, 2023, 2024):
         raise HTTPException(
             status_code=400,
@@ -71,30 +67,45 @@ def get_top_products(session: Session = Depends(get_session),
 
     query = (
         select(
-            func.date_trunc(period, Sale.date).label("period"),
-            Sale.brand,
-            func.sum(Sale.units_sold)
-        ).group_by(func.date_trunc(period, Sale.date), Sale.brand).order_by(func.sum(Sale.units_sold).desc()).limit(limit)
+            Product.product_id,
+            Product.product_name,
+            func.sum(Sale.units_sold).label("units_sold"),
+        )
+        .join(
+            Product,
+            Product.product_id == Sale.product_id
+        )
     )
 
     if year is not None:
-        query = query.where(func.extract("year", Sale.date) == year)
+        query = query.where(
+            func.extract("year", Sale.date) == year
+        )
 
     if month is not None:
-        query = query.where(func.extract("month", Sale.date) == month)
+        query = query.where(
+            func.extract("month", Sale.date) == month
+        )
 
     query = (
         query
-        .group_by("period")
-        .order_by("period")
+        .group_by(
+            Product.product_id,
+            Product.product_name,
+        )
+        .order_by(
+            func.sum(Sale.units_sold).desc()
+        )
+        .limit(limit)
     )
+
     results = session.exec(query).all()
 
     return [
         TopProductResponse(
-            date = row[0],
-            brand = row[1],
-            units_sold= row[2]
+            product_id=row[0],
+            product_name=row[1],
+            units_sold=row[2],
         )
         for row in results
     ]
