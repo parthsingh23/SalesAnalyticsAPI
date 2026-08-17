@@ -3,12 +3,10 @@ from datetime import date
 from enum import Enum
 
 class KPIResponses(SQLModel):
-    total_records: int
-    total_units_sold: int
-    total_delivered_qty: int
     total_revenue: float
-    average_price: float
-    unique_products: int
+    orders: int
+    aov: float
+    top_category: str
 
 class SalesTrendResponse(SQLModel):
     date: date
