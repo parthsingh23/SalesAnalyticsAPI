@@ -226,6 +226,7 @@ def get_sales_trend(
     return [
         SalesTrendResponse(
             date=row.period.date(),
+            orders=row.orders or 0,
             units_sold=row.units_sold or 0,
             total_revenue=round(
                 row.total_revenue or 0,
