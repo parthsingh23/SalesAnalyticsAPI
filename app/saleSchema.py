@@ -13,6 +13,7 @@ class SalesTrendResponse(SQLModel):
     units_sold: int
     total_revenue: float
     total_delivered_qty: int
+    orders: int
 
 class SalesByRegionResponses(SQLModel):
     region: str

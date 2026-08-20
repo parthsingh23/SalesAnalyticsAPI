@@ -196,6 +196,10 @@ def get_sales_trend(
             Sale.units_sold
         ).label("units_sold"),
 
+        func.count(
+            Sale.id
+        ).label("orders"),
+
         func.sum(
             Sale.price_unit * Sale.units_sold
         ).label("total_revenue"),
