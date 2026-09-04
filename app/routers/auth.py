@@ -1,9 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import User
-from app.security import hash_password, verify_password, create_access_token
+from app.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user
+)
 
 
 router = APIRouter(
@@ -47,12 +53,11 @@ def register(
 
 @router.post("/login")
 def login(
-    email: str,
-    password: str,
+    form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session)
 ):
     user = session.exec(
-        select(User).where(User.email == email)
+        select(User).where(User.email == form_data.username)
     ).first()
 
     if not user:
@@ -61,7 +66,10 @@ def login(
             detail="Invalid email or password"
         )
 
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(
+        form_data.password,
+        user.hashed_password
+    ):
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
@@ -77,4 +85,14 @@ def login(
     return {
         "access_token": access_token,
         "token_type": "bearer"
+    }
+
+@router.get("/me")
+def get_me(
+    current_user: User = Depends(get_current_user)
+):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "role": current_user.role
     }
