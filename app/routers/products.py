@@ -1,10 +1,10 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 
 from app.database import get_session
-from app.models import Product
+from app.models import Product, User
 from app.productSchema import *
 from app.security import get_current_user, require_admin
 
@@ -22,16 +22,72 @@ def get_product_or_404(product_id: int, session: Session) -> Product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
-@router.get("/", response_model=list[ProductRead], summary="Get all products", description="Retrieve all products available in the product catalog.")
+@router.get(
+    "/",
+    response_model=ProductListResponse,
+    summary="Get products",
+    description="Get a paginated list of products with optional search.",
+)
 def get_products(
-    session: SessionDep, 
-    offset: int = Query(default=0, ge=0, description="No. of items to skip"), 
-    limit: int = Query(default=0, le=100, description="Max number of items to return"),
-    current_user=Depends(get_current_user),
+    session: SessionDep,
+    current_user: User = Depends(get_current_user),
+    offset: int = Query(
+        default=0,
+        ge=0,
+        description="Number of products to skip.",
+    ),
+    limit: int = Query(
+        default=100,
+        ge=1,
+        le=1000,
+        description="Number of products to return.",
+    ),
+    search: str | None = Query(
+        default=None,
+        description="Search by product ID, product name, brand name, or category.",
+    ),
 ):
-    statement = select(Product).offset(offset).limit(limit)
-    products = session.exec(statement).all()
-    return products
+    products_statement = select(Product)
+
+    if search:
+        search_term = f"%{search.strip()}%"
+
+        products_statement = products_statement.where(
+            (Product.product_id.ilike(search_term))
+            | (Product.product_name.ilike(search_term))
+            | (Product.brand_name.ilike(search_term))
+            | (Product.category.ilike(search_term))
+        )
+
+    products_statement = (
+        products_statement
+        .offset(offset)
+        .limit(limit)
+    )
+
+    products = session.exec(products_statement).all()
+
+    count_statement = (
+        select(func.count())
+        .select_from(Product)
+    )
+
+    if search:
+        search_term = f"%{search.strip()}%"
+
+        count_statement = count_statement.where(
+            (Product.product_id.ilike(search_term))
+            | (Product.product_name.ilike(search_term))
+            | (Product.brand_name.ilike(search_term))
+            | (Product.category.ilike(search_term))
+        )
+
+    total = session.exec(count_statement).one()
+
+    return {
+        "items": products,
+        "total": total,
+    }
 
 @router.get("/{product_id}", response_model=ProductRead, summary="Get product by ID", description="Retrieve detailed information for a specific product using its database ID.")
 def get_product(product_id: int, session: SessionDep, current_user=Depends(get_current_user)):
