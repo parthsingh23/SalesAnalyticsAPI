@@ -130,6 +130,7 @@ def get_top_products(
     limit: int = Query(default=10, ge=1, le=100),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -176,6 +177,7 @@ def get_sales_trend(
     granularity: Granularity = Granularity.daily,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -250,6 +252,7 @@ def get_sales_by_region(
     session: Session = Depends(get_session),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -293,6 +296,7 @@ def get_sales_by_category(
     session: Session = Depends(get_session),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -336,6 +340,7 @@ def get_by_channel(
     session: Session = Depends(get_session),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
