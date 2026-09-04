@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 from sqlalchemy import func
 
 from app.database import get_session
-from app.models import Sale
+from app.models import Sale, User
 from app.saleSchema import (
     KPIResponses,
     SalesTrendResponse,
@@ -16,6 +16,7 @@ from app.saleSchema import (
     Granularity,
     ByChannel,
 )
+from app.security import get_current_user
 
 router = APIRouter(
     prefix="/analytics",
@@ -56,6 +57,7 @@ def apply_date_filter(
 )
 def get_kpis(
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
 ):
@@ -128,6 +130,7 @@ def get_top_products(
     limit: int = Query(default=10, ge=1, le=100),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -174,6 +177,7 @@ def get_sales_trend(
     granularity: Granularity = Granularity.daily,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -248,6 +252,7 @@ def get_sales_by_region(
     session: Session = Depends(get_session),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -291,6 +296,7 @@ def get_sales_by_category(
     session: Session = Depends(get_session),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
@@ -334,6 +340,7 @@ def get_by_channel(
     session: Session = Depends(get_session),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    current_user: User = Depends(get_current_user)
 ):
     validate_date_range(start_date, end_date)
 
