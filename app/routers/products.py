@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models import Product
 from app.productSchema import *
+from app.security import get_current_user, require_admin
 
 router = APIRouter(
     prefix="/products",
@@ -22,20 +23,22 @@ def get_product_or_404(product_id: int, session: Session) -> Product:
     return product
 
 @router.get("/", response_model=list[ProductRead], summary="Get all products", description="Retrieve all products available in the product catalog.")
-def get_products(session: SessionDep, 
+def get_products(
+    session: SessionDep, 
     offset: int = Query(default=0, ge=0, description="No. of items to skip"), 
-    limit: int = Query(default=0, le=100, description="Max number of items to return")
+    limit: int = Query(default=0, le=100, description="Max number of items to return"),
+    current_user=Depends(get_current_user),
 ):
     statement = select(Product).offset(offset).limit(limit)
     products = session.exec(statement).all()
     return products
 
 @router.get("/{product_id}", response_model=ProductRead, summary="Get product by ID", description="Retrieve detailed information for a specific product using its database ID.")
-def get_product(product_id: int, session: SessionDep):
+def get_product(product_id: int, session: SessionDep, current_user=Depends(get_current_user)):
     return get_product_or_404(product_id, session)
 
 @router.post("/", response_model=ProductRead, status_code=201, summary="Create a new product", description="Create a new product in the database. Product IDs must be unique.")
-def create_product(product: ProductCreate, session: SessionDep):
+def create_product(product: ProductCreate, session: SessionDep, current_user=Depends(require_admin)):
 
     existing_product = session.exec(
         select(Product).where(Product.product_id == product.product_id)
@@ -67,9 +70,7 @@ def create_product(product: ProductCreate, session: SessionDep):
     return db_product
 
 @router.put("/{product_id}", response_model=ProductRead, summary="Update a product", description="Update one or more fields of an existing product using its database ID." )
-def update_product(product_id: int, product: ProductUpdate, session: SessionDep):
-    statement = select(Product).where(Product.id == product_id)
-
+def update_product(product_id: int, product: ProductUpdate, session: SessionDep, current_user=Depends(require_admin)):
     db_product = get_product_or_404(product_id, session)
 
     update_data = product.model_dump(exclude_unset=True)
@@ -91,7 +92,7 @@ def update_product(product_id: int, product: ProductUpdate, session: SessionDep)
     return db_product
 
 @router.delete("/{product_id}", summary="Delete a product", description="Delete a product from the database using its database ID.")
-def delete_product(product_id: int, session: SessionDep):
+def delete_product(product_id: int, session: SessionDep, current_user=Depends(require_admin)):
     product = get_product_or_404(product_id, session)
     session.delete(product)
     session.commit()
