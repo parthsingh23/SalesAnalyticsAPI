@@ -97,13 +97,3 @@ def get_me(
         "email": current_user.email,
         "role": current_user.role
     }
-
-@router.get("/admin-test")
-def admin_test(
-    current_user: User = Depends(require_admin)
-):
-    return {
-        "message": "Admin access granted",
-        "email": current_user.email,
-        "role": current_user.role
-    }
