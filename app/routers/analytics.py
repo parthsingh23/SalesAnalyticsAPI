@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 from sqlalchemy import func
 
 from app.database import get_session
-from app.models import Sale
+from app.models import Sale, User
 from app.saleSchema import (
     KPIResponses,
     SalesTrendResponse,
@@ -16,6 +16,7 @@ from app.saleSchema import (
     Granularity,
     ByChannel,
 )
+from app.security import get_current_user
 
 router = APIRouter(
     prefix="/analytics",
@@ -56,6 +57,7 @@ def apply_date_filter(
 )
 def get_kpis(
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
 ):
