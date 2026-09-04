@@ -40,3 +40,11 @@ class Product(SQLModel, table=True):
     mrp: float
     sell_price: float
     discount: int
+
+class User(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    email: str = Field(unique=True, index=True)
+    hashed_password: str
+
+    role: str = Field(default="viewer")
