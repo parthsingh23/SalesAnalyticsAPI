@@ -64,3 +64,6 @@ class ProductUpdate(SQLModel):
     mrp: float | None = Field(default=None, gt=0)
     sell_price: float | None = Field(default=None, gt=0)
 
+class ProductListResponse(SQLModel):
+    items: list[ProductRead]
+    total: int
