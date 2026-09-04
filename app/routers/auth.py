@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import User
-from app.security import hash_password
+from app.security import hash_password, verify_password, create_access_token
 
 
 router = APIRouter(
@@ -43,4 +43,38 @@ def register(
         "user_id": user.id,
         "email": user.email,
         "role": user.role
+    }
+
+@router.post("/login")
+def login(
+    email: str,
+    password: str,
+    session: Session = Depends(get_session)
+):
+    user = session.exec(
+        select(User).where(User.email == email)
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    if not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    access_token = create_access_token(
+        {
+            "sub": user.email,
+            "role": user.role
+        }
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
     }
