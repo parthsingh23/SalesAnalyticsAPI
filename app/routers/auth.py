@@ -8,7 +8,8 @@ from app.security import (
     hash_password,
     verify_password,
     create_access_token,
-    get_current_user
+    get_current_user,
+    require_admin
 )
 
 
@@ -93,6 +94,16 @@ def get_me(
 ):
     return {
         "id": current_user.id,
+        "email": current_user.email,
+        "role": current_user.role
+    }
+
+@router.get("/admin-test")
+def admin_test(
+    current_user: User = Depends(require_admin)
+):
+    return {
+        "message": "Admin access granted",
         "email": current_user.email,
         "role": current_user.role
     }
