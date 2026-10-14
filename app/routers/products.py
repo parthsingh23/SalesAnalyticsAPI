@@ -37,7 +37,7 @@ def get_products(
         description="Number of products to skip.",
     ),
     limit: int = Query(
-        default=100,
+        default=25,
         ge=1,
         le=1000,
         description="Number of products to return.",
